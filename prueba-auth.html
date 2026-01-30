@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Autenticación Firebase</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .test-section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .success { background: #e8f5e9; border-color: #4caf50; }
+        .error { background: #ffebee; border-color: #f44336; }
+        .info { background: #e3f2fd; border-color: #2196f3; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        .user-info { background: #fff3e0; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Prueba de Autenticación - Granja Los Campos</h1>
+    <p><strong>Nota:</strong> El registro de usuarios está deshabilitado. Solo los administradores pueden crear cuentas desde Firebase Console.</p>
+
+    <div id="authStatus" class="test-section info">
+        <h3>Estado de Autenticación</h3>
+        <p id="userStatus">Cargando...</p>
+        <div id="userInfo" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🚪 Iniciar Sesión</h3>
+        <input type="email" id="loginEmail" placeholder="Email" value="test@granja.com">
+        <input type="password" id="loginPassword" placeholder="Contraseña" value="123456">
+        <br>
+        <button onclick="testSignIn()">Iniciar Sesión</button>
+        <button onclick="testSignOut()" style="background: #f44336; color: white;">Cerrar Sesión</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Verificar Estado</h3>
+        <button onclick="checkAuthState()">Verificar Estado Actual</button>
+        <button onclick="testFirestoreAccess()">Probar Acceso a Firestore</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // ✅ CONFIG DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTV-miHc-sA9-n1MJjQEfwQSfyNvl9vG0",
+            authDomain: "granja-los-campos-pos.firebaseapp.com",
+            projectId: "granja-los-campos-pos",
+            storageBucket: "granja-los-campos-pos.firebasestorage.app",
+            messagingSenderId: "553361614502",
+            appId: "1:553361614502:web:8192471c4d88bfe3e9b667",
+            measurementId: "G-7SL48RPRSF"
+        };
+
+        let db, auth, currentUser = null;
+
+        // Inicializar Firebase
+        function initFirebase() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            auth = firebase.auth();
+
+            // Listener de autenticación
+            auth.onAuthStateChanged((user) => {
+                currentUser = user;
+                updateAuthStatus(user);
+            });
+        }
+
+        // Funciones de autenticación
+        async function signIn(email, password) {
+            try {
+                const result = await auth.signInWithEmailAndPassword(email, password);
+                return { success: true, user: result.user };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function signOut() {
+            try {
+                await auth.signOut();
+                return { success: true };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        // UI Functions
+        function updateAuthStatus(user) {
+            const statusDiv = document.getElementById('userStatus');
+            const infoDiv = document.getElementById('userInfo');
+
+            if (user) {
+                statusDiv.textContent = '✅ Usuario autenticado';
+                statusDiv.className = 'success';
+                infoDiv.style.display = 'block';
+                infoDiv.innerHTML = `
+                    <div class="user-info">
+                        <strong>Email:</strong> ${user.email}<br>
+                        <strong>UID:</strong> ${user.uid}<br>
+                        <strong>Email verificado:</strong> ${user.emailVerified ? 'Sí' : 'No'}<br>
+                        <strong>Último login:</strong> ${user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleString() : 'N/A'}
+                    </div>
+                `;
+            } else {
+                statusDiv.textContent = '❌ No autenticado';
+                statusDiv.className = 'error';
+                infoDiv.style.display = 'none';
+            }
+        }
+
+        function addResult(message, success = true) {
+            const div = document.createElement('div');
+            div.className = 'test-section ' + (success ? 'success' : 'error');
+            div.innerHTML = `<p>${message}</p>`;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // Test functions
+        async function testSignIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const result = await signIn(email, password);
+            if (result.success) {
+                addResult(`✅ Login exitoso: ${result.user.email}`);
+            } else {
+                addResult(`❌ Error en login: ${result.error}`, false);
+            }
+        }
+
+        async function testSignOut() {
+            const result = await signOut();
+            if (result.success) {
+                addResult('✅ Sesión cerrada exitosamente');
+            } else {
+                addResult(`❌ Error al cerrar sesión: ${result.error}`, false);
+            }
+        }
+
+        async function checkAuthState() {
+            const user = auth.currentUser;
+            if (user) {
+                addResult(`✅ Usuario actual: ${user.email} (UID: ${user.uid})`);
+            } else {
+                addResult('❌ No hay usuario autenticado', false);
+            }
+        }
+
+        async function testFirestoreAccess() {
+            if (!currentUser) {
+                addResult('❌ No hay usuario autenticado - Firestore requiere login', false);
+                return;
+            }
+
+            try {
+                const testDoc = await db.collection('auth-test').doc('test').get();
+                addResult('✅ Acceso a Firestore exitoso - usuario autenticado');
+            } catch (error) {
+                addResult(`❌ Error de acceso a Firestore: ${error.message}`, false);
+            }
+        }
+
+        // Initialize
+        initFirebase();
+    </script>
+</body>
+</html>

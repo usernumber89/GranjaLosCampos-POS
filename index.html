@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#4CAF50">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Granja Avícola - Con Base de Datos</title>
+    <title>Granja Los Campos - Sistema POS</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Work+Sans:wght@400;500;600&display=swap');
         
@@ -50,6 +50,19 @@
             margin-bottom: 30px;
             box-shadow: 0 8px 30px rgba(44, 95, 45, 0.2);
             position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-content {
+            flex: 1;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
         header h1 {
@@ -570,17 +583,346 @@
                 margin-top: 15px;
             }
         }
+        
+        /* Estilos para autenticación */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(44, 95, 45, 0.9) 0%, rgba(58, 125, 58, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+
+        .login-header {
+            margin-bottom: 35px;
+        }
+
+        .login-logo {
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            display: block;
+        }
+
+        .login-card h2 {
+            color: var(--primary);
+            margin: 10px 0 8px 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .login-card p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .login-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            z-index: 2;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e0ddd5;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #faf8f3;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #bbb;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            margin: 0 8px 0 0;
+            width: auto;
+            padding: 0;
+        }
+
+        .forgot-password {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(44, 95, 45, 0.3);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-footer {
+            border-top: 1px solid #e0ddd5;
+            padding-top: 25px;
+            margin-top: 25px;
+        }
+
+        .login-footer p {
+            margin: 0 0 15px 0;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .security-notice {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-light);
+        }
+
+        .security-notice small {
+            font-size: 0.8rem;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f44336;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+
+            .form-options {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="db-status connected" id="dbStatus">
-                <div class="db-indicator"></div>
-                <span>Base de Datos Conectada</span>
+    <!-- Formulario de Login -->
+    <div id="loginForm" class="login-container" style="display: none;">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <span class="logo-icon">🐔</span>
+                </div>
+                <h2>Granja Los Campos</h2>
+                <p>Sistema de Punto de Venta</p>
             </div>
-            <h1>🐔 POS Granja Avícola</h1>
-            <p>Sistema de punto de venta con base de datos local</p>
+
+            <form class="login-form" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Correo Electrónico</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            placeholder="admin@granja.com"
+                            required
+                            autocomplete="email"
+                            maxlength="100"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                            minlength="6"
+                            maxlength="50"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        Recordarme
+                    </label>
+                    <a href="#" class="forgot-password" onclick="showForgotPassword()">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn-login" id="loginButton">
+                    <span class="btn-text">🚪 Iniciar Sesión</span>
+                    <div class="btn-spinner" id="loginSpinner" style="display: none;"></div>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>¿No tienes acceso? Contacta al administrador</p>
+                <div class="security-notice">
+                    <span class="security-icon">🛡️</span>
+                    <small>Conexión segura • Datos protegidos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicación Principal -->
+    <div id="mainApp">
+        <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🐔 Granja Los Campos</h1>
+                <p>Sistema de punto de venta con Firebase</p>
+            </div>
+            <div class="header-actions">
+                <div class="db-status connected" id="dbStatus">
+                    <div class="db-indicator"></div>
+                    <span>Base de Datos Conectada</span>
+                </div>
+                <div id="userInfo" class="user-info"></div>
+            </div>
         </header>
         
         <div class="tabs">
@@ -1087,13 +1429,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     
     <script>
         // ========================================
         // SISTEMA DE BASE DE DATOS - Firebase Firestore
         // ========================================
         
+        // Variables globales
         let db = null;
+        let auth;
+        let currentUser = null;
         let carrito = [];
         
         // Configuración de Firebase
@@ -1116,18 +1462,247 @@
                         firebase.initializeApp(firebaseConfig);
                     }
 
-                    // Usar Firestore en lugar de Realtime Database
+                    // Inicializar servicios
                     db = firebase.firestore();
+                    auth = firebase.auth();
 
-                    console.log('Firebase conectado exitosamente');
-                    document.getElementById('dbStatus').classList.add('connected');
-                    resolve(db);
+                    // Configurar persistencia de autenticación
+                    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+                    // Listener de estado de autenticación
+                    auth.onAuthStateChanged((user) => {
+                        currentUser = user;
+                        updateAuthUI(user);
+                        
+                        if (user) {
+                            console.log('Usuario autenticado:', user.email);
+                            document.getElementById('dbStatus').classList.add('connected');
+                            // Solo actualizar UI si ya se inicializó la base de datos
+                            if (db) {
+                                actualizarUI();
+                                actualizarEstadisticasDB();
+                            }
+                        } else {
+                            console.log('Usuario no autenticado');
+                            document.getElementById('dbStatus').classList.remove('connected');
+                            showLoginForm();
+                        }
+                    });
+
+                    console.log('Firebase inicializado correctamente');
+                    resolve({ db, auth });
                 } catch (error) {
-                    console.error('Error al conectar Firebase:', error);
+                    console.error('Error al inicializar Firebase:', error);
                     document.getElementById('dbStatus').innerHTML = '<div class="db-indicator" style="background: red;"></div><span>Error de Conexión</span>';
                     reject(error);
                 }
             });
+        }
+        
+        // ========================================
+        // SISTEMA DE AUTENTICACIÓN
+        // ========================================
+        
+        async function signIn(email, password) {
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log('Usuario inició sesión:', userCredential.user.email);
+                return { success: true, user: userCredential.user };
+            } catch (error) {
+                console.error('Error al iniciar sesión:', error);
+                return { success: false, error: getAuthErrorMessage(error.code) };
+            }
+        }
+        
+        async function signOut() {
+            try {
+                await auth.signOut();
+                console.log('Usuario cerró sesión');
+                return { success: true };
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        function getAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email':
+                    return 'Correo electrónico inválido';
+                case 'auth/user-disabled':
+                    return 'Usuario deshabilitado';
+                case 'auth/user-not-found':
+                    return 'Usuario no encontrado';
+                case 'auth/wrong-password':
+                    return 'Contraseña incorrecta';
+                case 'auth/email-already-in-use':
+                    return 'El correo ya está registrado';
+                case 'auth/weak-password':
+                    return 'La contraseña es muy débil (mínimo 6 caracteres)';
+                case 'auth/network-request-failed':
+                    return 'Error de conexión';
+                case 'auth/too-many-requests':
+                    return 'Demasiados intentos, intenta más tarde';
+                default:
+                    return 'Error de autenticación: ' + errorCode;
+            }
+        }
+        
+        // ========================================
+        // FUNCIONES DE UI DE AUTENTICACIÓN
+        // ========================================
+        
+        function updateAuthUI(user) {
+            const loginForm = document.getElementById('loginForm');
+            const mainApp = document.getElementById('mainApp');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (user) {
+                // Usuario autenticado
+                loginForm.style.display = 'none';
+                mainApp.style.display = 'block';
+                userInfo.innerHTML = `
+                    <span>👤 ${user.email}</span>
+                    <button onclick="handleSignOut()" class="btn-secondary" style="margin-left: 10px; font-size: 0.9rem;">
+                        🚪 Cerrar Sesión
+                    </button>
+                `;
+            } else {
+                // Usuario no autenticado
+                loginForm.style.display = 'block';
+                mainApp.style.display = 'none';
+                userInfo.innerHTML = '';
+            }
+        }
+        
+        function showLoginForm() {
+            const loginForm = document.getElementById('loginForm');
+            const mainApp = document.getElementById('mainApp');
+            
+            loginForm.style.display = 'block';
+            mainApp.style.display = 'none';
+        }
+        
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const loginButton = document.getElementById('loginButton');
+            const loginSpinner = document.getElementById('loginSpinner');
+            const btnText = loginButton.querySelector('.btn-text');
+            
+            // Validaciones de seguridad
+            if (!validateEmail(email)) {
+                showLoginError('Por favor ingresa un correo electrónico válido');
+                return;
+            }
+            
+            if (!validatePassword(password)) {
+                showLoginError('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+            
+            // Cambiar estado del botón
+            loginButton.disabled = true;
+            btnText.style.display = 'none';
+            loginSpinner.style.display = 'block';
+            
+            try {
+                const result = await signIn(email, password);
+                
+                if (result.success) {
+                    // Configurar persistencia si se seleccionó "recordarme"
+                    if (rememberMe) {
+                        await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                    } else {
+                        await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+                    }
+                    
+                    hideLoginError();
+                    mostrarAlerta('¡Bienvenido a Granja Los Campos!', 'success');
+                } else {
+                    showLoginError(result.error);
+                }
+            } catch (error) {
+                showLoginError('Error de conexión. Intenta nuevamente.');
+            } finally {
+                // Restaurar estado del botón
+                loginButton.disabled = false;
+                btnText.style.display = 'inline';
+                loginSpinner.style.display = 'none';
+            }
+        }
+        
+        async function handleSignOut() {
+            const result = await signOut();
+            
+            if (result.success) {
+                mostrarAlerta('Sesión cerrada correctamente', 'success');
+            } else {
+                mostrarAlerta('Error al cerrar sesión: ' + result.error, 'error');
+            }
+        }
+        
+        function showLoginError(message) {
+            const errorDiv = document.querySelector('.error-message') || createErrorDiv();
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Agregar animación de shake
+            const loginCard = document.querySelector('.login-card');
+            loginCard.style.animation = 'shake 0.5s ease-in-out';
+            setTimeout(() => {
+                loginCard.style.animation = '';
+            }, 500);
+        }
+        
+        function hideLoginError() {
+            const errorDiv = document.querySelector('.error-message');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+        
+        function createErrorDiv() {
+            const loginForm = document.querySelector('.login-form');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            loginForm.insertBefore(errorDiv, loginForm.firstChild);
+            return errorDiv;
+        }
+        
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email) && email.length <= 100;
+        }
+        
+        function validatePassword(password) {
+            return password.length >= 6 && password.length <= 50;
+        }
+        
+        function showForgotPassword() {
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) {
+                showLoginError('Ingresa tu correo electrónico primero');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                showLoginError('Ingresa un correo electrónico válido');
+                return;
+            }
+            
+            // Enviar email de recuperación
+            auth.sendPasswordResetEmail(email)
+                .then(() => {
+                    mostrarAlerta('Se ha enviado un enlace de recuperación a tu correo', 'success');
+                })
+                .catch((error) => {
+                    console.error('Error al enviar recuperación:', error);
+                    showLoginError('Error al enviar el email de recuperación');
+                });
         }
         
         // Funciones CRUD genéricas para Firebase Firestore
@@ -2350,11 +2925,10 @@
         document.getElementById('ventaCantidad').value = '0';
         
         initDB().then(async () => {
-            console.log('Sistema iniciado correctamente');
-            await actualizarUI();
-            await actualizarEstadisticasDB();
+            console.log('Firebase inicializado correctamente');
+            // La UI se actualiza automáticamente en el listener de autenticación
         }).catch(error => {
-            console.error('Error al inicializar:', error);
+            console.error('Error al inicializar Firebase:', error);
             alert('Error al iniciar la base de datos. Recargue la página.');
         });
 

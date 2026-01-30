@@ -343,16 +343,46 @@ He creado dos archivos para verificar que Firebase funciona correctamente:
 2. Ejecuta cada paso en orden
 3. Si un paso falla, ahí está el problema
 
-### `prueba-index.html`
-**Prueba específica de index.html:**
-- Verifica que initDB() funcione
-- Prueba agregarRegistro() con datos reales
-- Confirma que la configuración es correcta
+### `prueba-auth.html`
+**Prueba completa del sistema de autenticación:**
+- Verificar estado de autenticación
+- Probar login (registro deshabilitado)
+- Testear cierre de sesión
+- Verificar acceso a Firestore
 
 **Cómo usar:**
-1. Abre `prueba-index.html`
-2. Debería inicializar automáticamente
-3. Prueba agregar un registro de prueba
+1. Abre `prueba-auth.html`
+2. Prueba las funciones de login y cierre de sesión
+3. Verifica que el estado se actualice correctamente
+4. **Nota**: El registro está deshabilitado - solo administradores pueden crear cuentas
+
+---
+
+## 🔐 Autenticación con Firebase Auth
+
+**✅ HABILITADA**: La aplicación incluye autenticación completa con email/contraseña.
+
+### Configuración Rápida
+
+1. **En Firebase Console** → **Authentication** → **Sign-in method**
+2. **Habilita "Email/Password"**
+3. **Actualiza las reglas de Firestore** (ver `FIRESTORE_RULES.md`)
+4. **¡Listo!** Los usuarios deben iniciar sesión para acceder
+
+### Funciones de Autenticación
+
+- **Inicio de Sesión**: `signIn(email, password)`
+- **Registro**: `signUp(email, password)`
+- **Cerrar Sesión**: `signOut()`
+- **Estado del Usuario**: Automáticamente manejado
+
+### Interfaz de Usuario
+
+- **Formulario de Login**: Aparece automáticamente si no hay sesión
+- **Información del Usuario**: Visible en el header cuando autenticado
+- **Botón Cerrar Sesión**: Para terminar la sesión
+
+📖 **Lee `README_AUTH.md`** para instrucciones detalladas.
 
 ---
 

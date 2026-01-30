@@ -8,29 +8,29 @@ Ve a Firebase Console → Firestore Database → Reglas y reemplaza todo con:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir lectura/escritura para desarrollo (cambiar en producción)
+    // Reglas para producción - requieren autenticación
     match /{document=**} {
-      allow read, write: if true;
-    }
-
-    // Reglas más específicas (recomendado para producción):
-    /*
-    match /lotes/{loteId} {
       allow read, write: if request.auth != null;
     }
-
+    
+    // Reglas específicas por colección (más seguras):
+    /*
+    match /lotes/{loteId} {
+      allow read, write: if request.auth != null && request.auth.token.email_verified == true;
+    }
+    
     match /clientes/{clienteId} {
       allow read, write: if request.auth != null;
     }
-
+    
     match /proveedores/{proveedorId} {
       allow read, write: if request.auth != null;
     }
-
+    
     match /ventas/{ventaId} {
       allow read, write: if request.auth != null;
     }
-
+    
     match /salidas/{salidaId} {
       allow read, write: if request.auth != null;
     }
