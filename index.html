@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Granja Avícola - Con Base de Datos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Work+Sans:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2c5f2d;
+            --primary-light: #3d7f3e;
+            --accent: #f4a460;
+            --background: #faf8f3;
+            --surface: #ffffff;
+            --text: #2d2d2d;
+            --text-light: #666;
+            --border: #e0ddd5;
+            --success: #4caf50;
+            --error: #ef5350;
+        }
+        
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 30px rgba(44, 95, 45, 0.2);
+            position: relative;
+        }
+        
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .db-status {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .db-status.connected {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        
+        .db-indicator {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: var(--surface);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 14px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: var(--background);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(44, 95, 45, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+        }
+        
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.3s ease;
+            background: var(--background);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(44, 95, 45, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(44, 95, 45, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #e69450;
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .cart-item {
+            background: var(--background);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .cart-item-info {
+            flex: 1;
+        }
+        
+        .cart-item-info strong {
+            display: block;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-info small {
+            color: var(--text-light);
+        }
+        
+        .cart-item-price {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .cart-total {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .cart-total h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .cart-total .amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        thead {
+            background: var(--primary);
+            color: white;
+        }
+        
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background: var(--background);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .badge-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .badge-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input-label:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        #receipt {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px dashed var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .receipt-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--primary);
+        }
+        
+        .receipt-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(44, 95, 45, 0.2);
+        }
+        
+        .stat-card h3 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #ef5350;
+        }
+        
+        .db-tools {
+            background: var(--background);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .db-tools h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .db-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .db-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .db-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receipt, #receipt * {
+                visibility: visible;
+            }
+            #receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                box-shadow: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .db-status {
+                position: static;
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="db-status connected" id="dbStatus">
+                <div class="db-indicator"></div>
+                <span>Base de Datos Conectada</span>
+            </div>
+            <h1>🐔 POS Granja Avícola</h1>
+            <p>Sistema de punto de venta con base de datos local</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(event,'ventas')">💰 Ventas</button>
+            <button class="tab" onclick="switchTab(event,'lotes')">📦 Lotes</button>
+            <button class="tab" onclick="switchTab(event,'clientes')">👥 Clientes</button>
+            <button class="tab" onclick="switchTab(event,'proveedores')">🏢 Proveedores</button>
+            <button class="tab" onclick="switchTab(event,'salidas')">💸 Salidas</button>
+            <button class="tab" onclick="switchTab(event,'reportes')">📊 Reportes</button>
+            <button class="tab" onclick="switchTab(event,'database')">💾 Base de Datos</button>
+        </div>
+        
+        <!-- TAB: VENTAS -->
+        <div id="ventas" class="tab-content active">
+            <div class="grid">
+                <div>
+                    <div class="card">
+                        <h2>🛒 Nueva Venta</h2>
+                        
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <select id="ventaCliente">
+                                <option value="">Seleccionar cliente...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tipo de Producto</label>
+                            <select id="ventaTipoProducto" onchange="actualizarCamposVenta()">
+                                <option value="pollo_entero">Pollo Entero</option>
+                                <option value="pechuga">Pechuga</option>
+                                <option value="entrepierna">Entrepierna</option>
+                                <option value="pata">Patas</option>
+                                <option value="menudos">Menudos</option>
+                                <option value="otros">Otros</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Lote (opcional)</label>
+                            <select id="ventaLote" onchange="actualizarInfoLote()">
+                                <option value="">Sin lote</option>
+                            </select>
+                        </div>
+                        
+                        <div id="infoLote" style="display: none; background: var(--background); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <strong style="color: var(--primary);">Información del Lote</strong>
+                            <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div>
+                                    <small style="color: var(--text-light);">Pollos disponibles</small>
+                                    <div id="loteDisponibles" style="font-weight: 600;"></div>
+                                </div>
+                                <div>
+                                    <small style="color: var(--text-light);">Peso promedio</small>
+                                    <div id="lotePeso" style="font-weight: 600;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <div class="form-group">
+                                <label>Pollos Utilizados</label>
+                                <input type="number" id="ventaCantidad" min="0" value="0" step="1">
+                                <small style="color: var(--text-light); font-size: 0.85rem;">
+                                    (0 para productos sin descontar del inventario)
+                                </small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Peso en Libras</label>
+                                <input type="number" id="ventaPeso" step="0.01" min="0.01" placeholder="Ej: 5.5">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Precio por Libra ($)</label>
+                            <input type="number" id="ventaPrecio" step="0.01" min="0.01" value="2.50">
+                        </div>
+                        
+                        <button class="btn-primary" onclick="agregarAlCarrito()" style="width: 100%;">
+                            ➕ Agregar al Carrito
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card">
+                        <h2>🛍️ Carrito</h2>
+                        <div id="carritoItems"></div>
+                        
+                        <div class="cart-total">
+                            <h3>TOTAL</h3>
+                            <div class="amount" id="carritoTotal">$0.00</div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn-outline" onclick="limpiarCarrito()" style="flex: 1;">
+                                🗑️ Limpiar
+                            </button>
+                            <button class="btn-primary" onclick="finalizarVenta()" style="flex: 2;">
+                                ✅ Finalizar Venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB: LOTES -->
+        <div id="lotes" class="tab-content">
+            <div class="card">
+                <h2>📦 Gestión de Lotes</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 25px; margin-top: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 15px; color: var(--primary);">Agregar Nuevo Lote</h3>
+                        
+                        <div class="form-group">
+                            <label>Número de Lote</label>
+                            <input type="text" id="loteNumero" placeholder="Ej: LOTE-001">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Cantidad de Pollos</label>
+                            <input type="number" id="loteCantidad" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Peso Promedio (lbs)</label>
+                            <input type="number" id="lotePesoPromedio" step="0.01" min="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fecha de Ingreso</label>
+                            <input type="date" id="loteFecha">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Notas</label>
+                            <textarea id="loteNotas" rows="3" placeholder="Información adicional..."></textarea>
+                        </div>
+                        
+                        <button class="btn-primary" onclick="agregarLote()" style="width: 100%;">
+                            ➕ Agregar Lote
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 15px; color: var(--primary);">Lotes Registrados</h3>
+                        <div id="listaLotes"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB: CLIENTES -->
+        <div id="clientes" class="tab-content">
+            <div class="card">
+                <h2>👥 Gestión de Clientes</h2>
+                
+                <div class="btn-group" style="margin-bottom: 20px;">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="importarClientes" accept=".xlsx,.xls,.csv" onchange="importarClientesExcel(event)">
+                        <label for="importarClientes" class="file-input-label">
+                            📥 Importar desde Excel
+                        </label>
+                    </div>
+                    <button class="btn-secondary" onclick="exportarClientesExcel()">
+                        📤 Exportar a Excel
+                    </button>
+                    <button class="btn-primary" onclick="mostrarFormCliente()">
+                        ➕ Agregar Cliente
+                    </button>
+                </div>
+                
+                <div id="formCliente" style="display: none; background: var(--background); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: var(--primary);">Nuevo Cliente</h3>
+                    <div class="form-group">
+                        <label>ID del Cliente</label>
+                        <input type="text" id="clienteId" readonly style="background: #f0f0f0; cursor: not-allowed;">
+                        <small style="color: var(--text-light); font-size: 0.85rem;">
+                            (Generado automáticamente)
+                        </small>
+                    </div>
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" id="clienteNombre">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="clienteTelefono">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="clienteDireccion">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-outline" onclick="ocultarFormCliente()">Cancelar</button>
+                        <button class="btn-primary" onclick="agregarCliente()">Guardar Cliente</button>
+                    </div>
+                </div>
+                
+                <div id="listaClientes"></div>
+            </div>
+        </div>
+        
+        <!-- TAB: PROVEEDORES -->
+        <div id="proveedores" class="tab-content">
+            <div class="card">
+                <h2>🏢 Gestión de Proveedores</h2>
+                
+                <div class="btn-group" style="margin-bottom: 20px;">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="importarProveedores" accept=".xlsx,.xls,.csv" onchange="importarProveedoresExcel(event)">
+                        <label for="importarProveedores" class="file-input-label">
+                            📥 Importar desde Excel
+                        </label>
+                    </div>
+                    <button class="btn-secondary" onclick="exportarProveedoresExcel()">
+                        📤 Exportar a Excel
+                    </button>
+                    <button class="btn-primary" onclick="mostrarFormProveedor()">
+                        ➕ Agregar Proveedor
+                    </button>
+                </div>
+                
+                <div id="formProveedor" style="display: none; background: var(--background); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: var(--primary);">Nuevo Proveedor</h3>
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Nombre de Empresa</label>
+                            <input type="text" id="proveedorNombre">
+                        </div>
+                        <div class="form-group">
+                            <label>Contacto</label>
+                            <input type="text" id="proveedorContacto">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="proveedorTelefono">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="proveedorEmail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="proveedorDireccion">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Servicio/Producto</label>
+                        <select id="proveedorTipo">
+                            <option>Alimento</option>
+                            <option>Medicina</option>
+                            <option>Transporte</option>
+                            <option>Servicios Veterinarios</option>
+                            <option>Equipamiento</option>
+                            <option>Otros</option>
+                        </select>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-outline" onclick="ocultarFormProveedor()">Cancelar</button>
+                        <button class="btn-primary" onclick="agregarProveedor()">Guardar Proveedor</button>
+                    </div>
+                </div>
+                
+                <div id="listaProveedores"></div>
+            </div>
+        </div>
+        
+        <!-- TAB: SALIDAS -->
+        <div id="salidas" class="tab-content">
+            <div class="card">
+                <h2>💸 Registro de Salidas / Gastos</h2>
+
+                <div class="input-group">
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="salidaFecha">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="salidaTipo">
+                            <option>Alimento</option>
+                            <option>Medicina</option>
+                            <option>Transporte</option>
+                            <option>Personal</option>
+                            <option>Servicios Veterinarios</option>
+                            <option>Equipamiento</option>
+                            <option>Otros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="form-group">
+                        <label>Lote (opcional)</label>
+                        <select id="salidaLote">
+                            <option value="">Sin lote</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proveedor (opcional)</label>
+                        <select id="salidaProveedor">
+                            <option value="">Sin proveedor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="form-group">
+                        <label>Monto ($)</label>
+                        <input type="number" id="salidaMonto" step="0.01" min="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" id="salidaDescripcion">
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="agregarSalida()" style="width: 100%;">
+                    ➕ Registrar Salida
+                </button>
+
+                <hr style="margin:20px 0">
+
+                <h3 style="margin-bottom: 15px; color: var(--primary);">Salidas Registradas</h3>
+                <button class="btn-secondary" onclick="exportarSalidasExcel()" style="margin-bottom: 20px;">
+                    📤 Exportar a Excel
+                </button>
+
+                <div id="listaSalidas"></div>
+            </div>
+        </div>
+        
+        <!-- TAB: REPORTES -->
+        <div id="reportes" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Ventas</h3>
+                    <div class="value" id="statVentas">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pollos Vendidos</h3>
+                    <div class="value" id="statPollos">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Lotes Activos</h3>
+                    <div class="value" id="statLotes">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Clientes</h3>
+                    <div class="value" id="statClientes">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Proveedores</h3>
+                    <div class="value" id="statProveedores">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Salidas</h3>
+                    <div class="value" id="statSalidas">$0.00</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Historial de Ventas</h2>
+                <button class="btn-secondary" onclick="exportarVentasExcel()" style="margin-bottom: 20px;">
+                    📤 Exportar Ventas a Excel
+                </button>
+                <div id="historialVentas"></div>
+            </div>
+            
+            <div class="card" style="margin-top: 25px;">
+                <h2>💸 Historial de Salidas</h2>
+                <button class="btn-secondary" onclick="exportarSalidasExcel()" style="margin-bottom: 20px;">
+                    📤 Exportar Salidas a Excel
+                </button>
+                <div id="historialSalidas"></div>
+            </div>
+        </div>
+        
+        <!-- TAB: BASE DE DATOS -->
+        <div id="database" class="tab-content">
+            <div class="card">
+                <h2>💾 Gestión de Base de Datos</h2>
+                
+                <div class="db-info">
+                    <strong style="color: var(--primary); display: block; margin-bottom: 10px;">
+                        Información de la Base de Datos
+                    </strong>
+                    <div class="db-info-item">
+                        <span>Tipo de Base de Datos:</span>
+                        <strong>Firebase Realtime Database (Nube)</strong>
+                    </div>
+                    <div class="db-info-item">
+                        <span>Nombre del Proyecto:</span>
+                        <strong id="dbName">Configurar credenciales Firebase</strong>
+                    </div>
+                    <div class="db-info-item">
+                        <span>Versión:</span>
+                        <strong id="dbVersion">Firebase SDK v10.7.0</strong>
+                    </div>
+                    <div class="db-info-item">
+                        <span>Estado:</span>
+                        <strong id="dbState" style="color: var(--success);">✓ Conectada</strong>
+                    </div>
+                </div>
+                
+                <div class="db-tools">
+                    <h3>🔧 Herramientas de Base de Datos</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px; font-size: 1rem;">Backup y Restauración</h4>
+                        <div class="btn-group">
+                            <button class="btn-secondary" onclick="exportarBaseDatos()">
+                                💾 Descargar Backup Completo (JSON)
+                            </button>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="importarDB" accept=".json" onchange="importarBaseDatos(event)">
+                                <label for="importarDB" class="file-input-label" style="background: var(--accent);">
+                                    📥 Restaurar desde Backup
+                                </label>
+                            </div>
+                        </div>
+                        <p style="margin-top: 10px; color: var(--text-light); font-size: 0.9rem;">
+                            El backup incluye todos los lotes, clientes, proveedores, ventas y salidas registrados
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px; font-size: 1rem;">Estadísticas de Almacenamiento</h4>
+                        <div class="db-info">
+                            <div class="db-info-item">
+                                <span>Lotes almacenados:</span>
+                                <strong id="dbLotesCount">0</strong>
+                            </div>
+                            <div class="db-info-item">
+                                <span>Clientes almacenados:</span>
+                                <strong id="dbClientesCount">0</strong>
+                            </div>
+                            <div class="db-info-item">
+                                <span>Proveedores almacenados:</span>
+                                <strong id="dbProveedoresCount">0</strong>
+                            </div>
+                            <div class="db-info-item">
+                                <span>Ventas registradas:</span>
+                                <strong id="dbVentasCount">0</strong>
+                            </div>
+                            <div class="db-info-item">
+                                <span>Salidas registradas:</span>
+                                <strong id="dbSalidasCount">0</strong>
+                            </div>
+                        </div>
+                        <button class="btn-outline" onclick="actualizarEstadisticasDB()" style="margin-top: 10px;">
+                            🔄 Actualizar Estadísticas
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <h4 style="margin-bottom: 10px; font-size: 1rem; color: var(--error);">⚠️ Zona de Peligro</h4>
+                        <div style="background: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid var(--error);">
+                            <p style="margin-bottom: 10px; color: #c62828;">
+                                <strong>Precaución:</strong> Esta acción eliminará permanentemente todos los datos
+                            </p>
+                            <button class="btn-danger" onclick="limpiarBaseDatos()">
+                                🗑️ Eliminar Toda la Base de Datos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RECIBO (oculto, se muestra al finalizar venta) -->
+    <div id="receipt" style="display: none;">
+        <div class="receipt-header">
+            <h2>🐔 Granja Avícola</h2>
+            <p>Recibo de Venta</p>
+            <small id="reciboFecha"></small>
+        </div>
+        
+        <div id="reciboDetalles"></div>
+        
+        <div class="receipt-footer">
+            <div class="receipt-total">
+                <span>TOTAL:</span>
+                <span id="reciboTotal"></span>
+            </div>
+            <p style="text-align: center; color: var(--text-light); font-size: 0.9rem;">
+                ¡Gracias por su compra!
+            </p>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // ========================================
+        // SISTEMA DE BASE DE DATOS - Firebase Firestore
+        // ========================================
+        
+        let db = null;
+        let carrito = [];
+        
+        // Configuración de Firebase
+       const firebaseConfig = {
+  apiKey: "AIzaSyCTV-miHc-sA9-n1MJjQEfwQSfyNvl9vG0",
+  authDomain: "granja-los-campos-pos.firebaseapp.com",
+  projectId: "granja-los-campos-pos",
+  storageBucket: "granja-los-campos-pos.firebasestorage.app",
+  messagingSenderId: "553361614502",
+  appId: "1:553361614502:web:8192471c4d88bfe3e9b667",
+  measurementId: "G-7SL48RPRSF"
+};
+        
+        // Inicializar Firebase
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                try {
+                    // Verificar si Firebase ya está inicializado
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+
+                    // Usar Firestore en lugar de Realtime Database
+                    db = firebase.firestore();
+
+                    console.log('Firebase conectado exitosamente');
+                    document.getElementById('dbStatus').classList.add('connected');
+                    resolve(db);
+                } catch (error) {
+                    console.error('Error al conectar Firebase:', error);
+                    document.getElementById('dbStatus').innerHTML = '<div class="db-indicator" style="background: red;"></div><span>Error de Conexión</span>';
+                    reject(error);
+                }
+            });
+        }
+        
+        // Funciones CRUD genéricas para Firebase Firestore
+        function agregarRegistro(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const docRef = db.collection(storeName).doc();
+                data.id = docRef.id; // Firestore usa IDs de documento
+
+                docRef.set(data)
+                    .then(() => {
+                        resolve(docRef.id);
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        }
+        
+        function obtenerRegistro(storeName, id) {
+            return new Promise((resolve, reject) => {
+                db.collection(storeName).doc(id).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            data.id = doc.id;
+                            resolve(data);
+                        } else {
+                            resolve(null);
+                        }
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        }
+        
+        function obtenerTodos(storeName) {
+            return new Promise((resolve, reject) => {
+                db.collection(storeName).get()
+                    .then((querySnapshot) => {
+                        const datos = [];
+                        querySnapshot.forEach((doc) => {
+                            const data = doc.data();
+                            data.id = doc.id;
+                            datos.push(data);
+                        });
+                        resolve(datos);
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        }
+        
+        function actualizarRegistro(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const id = data.id;
+                const dataCopy = { ...data };
+                delete dataCopy.id;
+
+                db.collection(storeName).doc(id).set(dataCopy)
+                    .then(() => {
+                        resolve(id);
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        }
+        
+        function eliminarRegistro(storeName, id) {
+            return new Promise((resolve, reject) => {
+                db.collection(storeName).doc(id).delete()
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        }
+        
+        function limpiarStore(storeName) {
+            return new Promise((resolve, reject) => {
+                // Obtener todos los documentos de la colección
+                db.collection(storeName).get()
+                    .then((querySnapshot) => {
+                        const batch = db.batch();
+                        querySnapshot.forEach((doc) => {
+                            batch.delete(doc.ref);
+                        });
+                        return batch.commit();
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        }
+        
+        // ========================================
+        // GESTIÓN DE LOTES
+        // ========================================
+        
+        async function agregarLote() {
+            const numero = document.getElementById('loteNumero').value;
+            const cantidad = parseInt(document.getElementById('loteCantidad').value);
+            const peso = parseFloat(document.getElementById('lotePesoPromedio').value);
+            const fecha = document.getElementById('loteFecha').value;
+            const notas = document.getElementById('loteNotas').value;
+            
+            if (!numero || !cantidad || !peso || !fecha) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            const lote = {
+                id: Date.now(),
+                numero,
+                cantidad,
+                disponibles: cantidad,
+                pesoPromedio: peso,
+                fecha,
+                notas,
+                activo: true
+            };
+            
+            try {
+                await agregarRegistro('lotes', lote);
+                
+                // Limpiar formulario
+                document.getElementById('loteNumero').value = '';
+                document.getElementById('loteCantidad').value = '';
+                document.getElementById('lotePesoPromedio').value = '';
+                document.getElementById('loteFecha').value = '';
+                document.getElementById('loteNotas').value = '';
+                
+                mostrarAlerta('Lote agregado exitosamente a la base de datos', 'success');
+                await actualizarUI();
+            } catch (error) {
+                console.error('Error al agregar lote:', error);
+                mostrarAlerta('Error al guardar el lote', 'error');
+            }
+        }
+        
+        async function eliminarLote(id) {
+            if (confirm('¿Está seguro de eliminar este lote de la base de datos?')) {
+                try {
+                    await eliminarRegistro('lotes', id);
+                    mostrarAlerta('Lote eliminado', 'success');
+                    await actualizarUI();
+                } catch (error) {
+                    console.error('Error al eliminar lote:', error);
+                    mostrarAlerta('Error al eliminar el lote', 'error');
+                }
+            }
+        }
+        
+        async function renderizarLotes() {
+            const container = document.getElementById('listaLotes');
+            const lotes = await obtenerTodos('lotes');
+            
+            // Actualizar select de salidas
+            const selectSalida = document.getElementById('salidaLote');
+            if (selectSalida) {
+                selectSalida.innerHTML = '<option value="">Sin lote</option>';
+                lotes.forEach(l => {
+                    selectSalida.innerHTML += `<option value="${l.id}">${l.numero}</option>`;
+                });
+            }
+            
+            if (lotes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No hay lotes en la base de datos</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<table><thead><tr><th>Lote</th><th>Pollos</th><th>Peso Prom.</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+            
+            lotes.forEach(lote => {
+                html += `
+                    <tr>
+                        <td><strong>${lote.numero}</strong></td>
+                        <td>${lote.disponibles} / ${lote.cantidad}</td>
+                        <td>${lote.pesoPromedio} lbs</td>
+                        <td>${new Date(lote.fecha).toLocaleDateString()}</td>
+                        <td><span class="badge ${lote.activo ? 'badge-active' : 'badge-inactive'}">${lote.activo ? 'Activo' : 'Agotado'}</span></td>
+                        <td>
+                            <button class="btn-outline action-btn" onclick="eliminarLote(${lote.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            // Actualizar select de ventas
+            const select = document.getElementById('ventaLote');
+            select.innerHTML = '<option value="">Seleccionar lote...</option>';
+            lotes.filter(l => l.activo && l.disponibles > 0).forEach(lote => {
+                select.innerHTML += `<option value="${lote.id}">${lote.numero} (${lote.disponibles} disponibles)</option>`;
+            });
+        }
+        
+        async function actualizarInfoLote() {
+            const loteId = parseInt(document.getElementById('ventaLote').value);
+            const infoDiv = document.getElementById('infoLote');
+            
+            if (!loteId) {
+                infoDiv.style.display = 'none';
+                return;
+            }
+            
+            const lote = await obtenerRegistro('lotes', loteId);
+            if (lote) {
+                document.getElementById('loteDisponibles').textContent = `${lote.disponibles} pollos`;
+                document.getElementById('lotePeso').textContent = `${lote.pesoPromedio} lbs`;
+                infoDiv.style.display = 'block';
+            }
+        }
+        
+        function actualizarCamposVenta() {
+            const tipoProducto = document.getElementById('ventaTipoProducto').value;
+            const cantidadInput = document.getElementById('ventaCantidad');
+            
+            // Sugerir valores por defecto según el tipo de producto
+            if (tipoProducto === 'pollo_entero') {
+                cantidadInput.value = '1';
+            } else {
+                cantidadInput.value = '0';
+            }
+        }
+        
+        // ========================================
+        // GESTIÓN DE CLIENTES
+        // ========================================
+        
+        async function generarIdCliente() {
+            const clientes = await obtenerTodos('clientes');
+            
+            // Encontrar el número más alto
+            let maxNum = 0;
+            clientes.forEach(cliente => {
+                if (cliente.clienteId && cliente.clienteId.startsWith('CLI-')) {
+                    const num = parseInt(cliente.clienteId.split('-')[1]);
+                    if (!isNaN(num) && num > maxNum) {
+                        maxNum = num;
+                    }
+                }
+            });
+            
+            // Generar nuevo ID
+            const nuevoNum = maxNum + 1;
+            return `CLI-${nuevoNum.toString().padStart(4, '0')}`;
+        }
+        
+        async function mostrarFormCliente() {
+            document.getElementById('formCliente').style.display = 'block';
+            
+            // Generar y mostrar ID automático
+            const nuevoId = await generarIdCliente();
+            document.getElementById('clienteId').value = nuevoId;
+        }
+        
+        function ocultarFormCliente() {
+            document.getElementById('formCliente').style.display = 'none';
+            document.getElementById('clienteId').value = '';
+            document.getElementById('clienteNombre').value = '';
+            document.getElementById('clienteTelefono').value = '';
+            document.getElementById('clienteDireccion').value = '';
+        }
+        
+        async function agregarCliente() {
+            const clienteId = document.getElementById('clienteId').value;
+            const nombre = document.getElementById('clienteNombre').value;
+            const telefono = document.getElementById('clienteTelefono').value;
+            const direccion = document.getElementById('clienteDireccion').value;
+            
+            if (!nombre) {
+                alert('El nombre es obligatorio');
+                return;
+            }
+            
+            const cliente = {
+                id: Date.now(),
+                clienteId: clienteId,
+                nombre,
+                telefono,
+                direccion
+            };
+            
+            try {
+                await agregarRegistro('clientes', cliente);
+                ocultarFormCliente();
+                mostrarAlerta(`Cliente agregado con ID: ${clienteId}`, 'success');
+                await actualizarUI();
+            } catch (error) {
+                console.error('Error al agregar cliente:', error);
+                mostrarAlerta('Error al guardar el cliente', 'error');
+            }
+        }
+        
+        async function eliminarCliente(id) {
+            if (confirm('¿Está seguro de eliminar este cliente?')) {
+                try {
+                    await eliminarRegistro('clientes', id);
+                    mostrarAlerta('Cliente eliminado', 'success');
+                    await actualizarUI();
+                } catch (error) {
+                    console.error('Error al eliminar cliente:', error);
+                    mostrarAlerta('Error al eliminar el cliente', 'error');
+                }
+            }
+        }
+        
+        async function renderizarClientes() {
+            const container = document.getElementById('listaClientes');
+            const clientes = await obtenerTodos('clientes');
+            
+            if (clientes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No hay clientes en la base de datos</p>
+                        <p style="font-size: 0.9rem;">Agregue clientes manualmente o importe desde Excel</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<table><thead><tr><th>ID Cliente</th><th>Nombre</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th></tr></thead><tbody>';
+            
+            clientes.forEach(cliente => {
+                const clienteId = cliente.clienteId || '-';
+                html += `
+                    <tr>
+                        <td><span class="badge badge-active">${clienteId}</span></td>
+                        <td><strong>${cliente.nombre}</strong></td>
+                        <td>${cliente.telefono || '-'}</td>
+                        <td>${cliente.direccion || '-'}</td>
+                        <td>
+                            <button class="btn-outline action-btn" onclick="eliminarCliente(${cliente.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            // Actualizar select de ventas
+            const select = document.getElementById('ventaCliente');
+            select.innerHTML = '<option value="">Seleccionar cliente...</option>';
+            clientes.forEach(cliente => {
+                const displayText = cliente.clienteId 
+                    ? `${cliente.clienteId} - ${cliente.nombre}` 
+                    : cliente.nombre;
+                select.innerHTML += `<option value="${cliente.id}">${displayText}</option>`;
+            });
+        }
+        
+        async function importarClientesExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    let importados = 0;
+                    const clientes = await obtenerTodos('clientes');
+                    
+                    // Encontrar el número más alto existente
+                    let maxNum = 0;
+                    clientes.forEach(cliente => {
+                        if (cliente.clienteId && cliente.clienteId.startsWith('CLI-')) {
+                            const num = parseInt(cliente.clienteId.split('-')[1]);
+                            if (!isNaN(num) && num > maxNum) {
+                                maxNum = num;
+                            }
+                        }
+                    });
+                    
+                    for (const row of rows) {
+                        if (row.Nombre || row.nombre) {
+                            maxNum++;
+                            const nuevoId = `CLI-${maxNum.toString().padStart(4, '0')}`;
+                            
+                            const cliente = {
+                                id: Date.now() + Math.random() * 1000,
+                                clienteId: nuevoId,
+                                nombre: row.Nombre || row.nombre || '',
+                                telefono: row.Telefono || row.telefono || row.Teléfono || '',
+                                direccion: row.Direccion || row.direccion || row.Dirección || ''
+                            };
+                            await agregarRegistro('clientes', cliente);
+                            importados++;
+                        }
+                    }
+                    
+                    mostrarAlerta(`${importados} clientes importados a la base de datos`, 'success');
+                    await actualizarUI();
+                } catch (error) {
+                    console.error('Error al importar:', error);
+                    alert('Error al importar el archivo. Verifique que sea un archivo Excel válido.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        async function exportarClientesExcel() {
+            const clientes = await obtenerTodos('clientes');
+            
+            if (clientes.length === 0) {
+                alert('No hay clientes para exportar');
+                return;
+            }
+            
+            const data = clientes.map(c => ({
+                'ID Cliente': c.clienteId || '-',
+                Nombre: c.nombre,
+                Teléfono: c.telefono || '',
+                Dirección: c.direccion || ''
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+            XLSX.writeFile(wb, `clientes_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+        
+        // ========================================
+        // GESTIÓN DE PROVEEDORES
+        // ========================================
+        
+        function mostrarFormProveedor() {
+            document.getElementById('formProveedor').style.display = 'block';
+        }
+        
+        function ocultarFormProveedor() {
+            document.getElementById('formProveedor').style.display = 'none';
+            document.getElementById('proveedorNombre').value = '';
+            document.getElementById('proveedorContacto').value = '';
+            document.getElementById('proveedorTelefono').value = '';
+            document.getElementById('proveedorEmail').value = '';
+            document.getElementById('proveedorDireccion').value = '';
+            document.getElementById('proveedorTipo').value = 'Alimento';
+        }
+        
+        async function agregarProveedor() {
+            const nombre = document.getElementById('proveedorNombre').value;
+            const contacto = document.getElementById('proveedorContacto').value;
+            const telefono = document.getElementById('proveedorTelefono').value;
+            const email = document.getElementById('proveedorEmail').value;
+            const direccion = document.getElementById('proveedorDireccion').value;
+            const tipo = document.getElementById('proveedorTipo').value;
+            
+            if (!nombre) {
+                alert('El nombre de la empresa es obligatorio');
+                return;
+            }
+            
+            const proveedor = {
+                id: Date.now(),
+                nombre,
+                contacto,
+                telefono,
+                email,
+                direccion,
+                tipo
+            };
+            
+            try {
+                await agregarRegistro('proveedores', proveedor);
+                ocultarFormProveedor();
+                mostrarAlerta('Proveedor agregado a la base de datos', 'success');
+                await actualizarUI();
+            } catch (error) {
+                console.error('Error al agregar proveedor:', error);
+                mostrarAlerta('Error al guardar el proveedor', 'error');
+            }
+        }
+        
+        async function eliminarProveedor(id) {
+            if (confirm('¿Está seguro de eliminar este proveedor?')) {
+                try {
+                    await eliminarRegistro('proveedores', id);
+                    mostrarAlerta('Proveedor eliminado', 'success');
+                    await actualizarUI();
+                } catch (error) {
+                    console.error('Error al eliminar proveedor:', error);
+                    mostrarAlerta('Error al eliminar el proveedor', 'error');
+                }
+            }
+        }
+        
+        async function renderizarProveedores() {
+            const container = document.getElementById('listaProveedores');
+            const proveedores = await obtenerTodos('proveedores');
+            
+            if (proveedores.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No hay proveedores en la base de datos</p>
+                        <p style="font-size: 0.9rem;">Agregue proveedores manualmente o importe desde Excel</p>
+                    </div>
+                `;
+            } else {
+                let html = '<table><thead><tr><th>Empresa</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Tipo</th><th>Acciones</th></tr></thead><tbody>';
+                
+                proveedores.forEach(proveedor => {
+                    html += `
+                        <tr>
+                            <td><strong>${proveedor.nombre}</strong></td>
+                            <td>${proveedor.contacto || '-'}</td>
+                            <td>${proveedor.telefono || '-'}</td>
+                            <td>${proveedor.email || '-'}</td>
+                            <td><span class="badge badge-active">${proveedor.tipo}</span></td>
+                            <td>
+                                <button class="btn-outline action-btn" onclick="eliminarProveedor(${proveedor.id})">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            }
+            
+            // Actualizar select de salidas
+            const select = document.getElementById('salidaProveedor');
+            if (select) {
+                select.innerHTML = '<option value="">Sin proveedor</option>';
+                proveedores.forEach(proveedor => {
+                    select.innerHTML += `<option value="${proveedor.id}">${proveedor.nombre} (${proveedor.tipo})</option>`;
+                });
+            }
+        }
+        
+        async function importarProveedoresExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    let importados = 0;
+                    for (const row of rows) {
+                        if (row.Nombre || row.nombre || row.Empresa || row.empresa) {
+                            const proveedor = {
+                                id: Date.now() + Math.random() * 1000,
+                                nombre: row.Nombre || row.nombre || row.Empresa || row.empresa || '',
+                                contacto: row.Contacto || row.contacto || '',
+                                telefono: row.Telefono || row.telefono || row.Teléfono || '',
+                                email: row.Email || row.email || row.Correo || row.correo || '',
+                                direccion: row.Direccion || row.direccion || row.Dirección || '',
+                                tipo: row.Tipo || row.tipo || 'Otros'
+                            };
+                            await agregarRegistro('proveedores', proveedor);
+                            importados++;
+                        }
+                    }
+                    
+                    mostrarAlerta(`${importados} proveedores importados a la base de datos`, 'success');
+                    await actualizarUI();
+                } catch (error) {
+                    console.error('Error al importar:', error);
+                    alert('Error al importar el archivo. Verifique que sea un archivo Excel válido.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        async function exportarProveedoresExcel() {
+            const proveedores = await obtenerTodos('proveedores');
+            
+            if (proveedores.length === 0) {
+                alert('No hay proveedores para exportar');
+                return;
+            }
+            
+            const data = proveedores.map(p => ({
+                Empresa: p.nombre,
+                Contacto: p.contacto || '',
+                Teléfono: p.telefono || '',
+                Email: p.email || '',
+                Dirección: p.direccion || '',
+                Tipo: p.tipo
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Proveedores");
+            XLSX.writeFile(wb, `proveedores_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+        
+        // ========================================
+        // GESTIÓN DE SALIDAS
+        // ========================================
+        
+        async function agregarSalida() {
+            const fecha = document.getElementById('salidaFecha').value;
+            const tipo = document.getElementById('salidaTipo').value;
+            const loteId = document.getElementById('salidaLote').value || null;
+            const proveedorId = document.getElementById('salidaProveedor').value || null;
+            const monto = parseFloat(document.getElementById('salidaMonto').value);
+            const descripcion = document.getElementById('salidaDescripcion').value;
+
+            if (!fecha || !monto || monto <= 0) {
+                alert('Complete fecha y monto válido');
+                return;
+            }
+
+            const salida = {
+                id: Date.now() + Math.random(),
+                fecha,
+                tipo,
+                loteId,
+                proveedorId,
+                monto,
+                descripcion
+            };
+
+            try {
+                await agregarRegistro('salidas', salida);
+
+                document.getElementById('salidaMonto').value = '';
+                document.getElementById('salidaDescripcion').value = '';
+
+                mostrarAlerta('Salida registrada', 'success');
+                await renderizarSalidas();
+                await renderizarReportes();
+            } catch (error) {
+                console.error('Error al registrar salida:', error);
+                mostrarAlerta('Error al registrar la salida', 'error');
+            }
+        }
+        
+        async function eliminarSalida(id) {
+            if (!confirm('¿Eliminar esta salida?')) return;
+
+            try {
+                await eliminarRegistro('salidas', id);
+                await renderizarSalidas();
+                await renderizarReportes();
+                await actualizarEstadisticasDB();
+                mostrarAlerta('Salida eliminada', 'success');
+            } catch (error) {
+                console.error('Error al eliminar salida:', error);
+                mostrarAlerta('Error al eliminar la salida', 'error');
+            }
+        }
+        
+        async function renderizarSalidas() {
+            const cont = document.getElementById('listaSalidas');
+            const contHistorial = document.getElementById('historialSalidas');
+            const salidas = await obtenerTodos('salidas');
+            const lotes = await obtenerTodos('lotes');
+            const proveedores = await obtenerTodos('proveedores');
+
+            if (salidas.length === 0) {
+                const emptyHTML = `<div class="empty-state"><p>No hay salidas registradas</p></div>`;
+                if (cont) cont.innerHTML = emptyHTML;
+                if (contHistorial) contHistorial.innerHTML = emptyHTML;
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th><th>Tipo</th><th>Lote</th><th>Proveedor</th><th>Monto</th><th>Descripción</th><th>Acciones</th>
+                    </tr>
+                </thead><tbody>`;
+
+            salidas.slice().reverse().forEach(s => {
+                const lote = lotes.find(l => l.id == s.loteId);
+                const proveedor = proveedores.find(p => p.id == s.proveedorId);
+                html += `
+                <tr>
+                    <td>${s.fecha}</td>
+                    <td>${s.tipo}</td>
+                    <td>${lote ? lote.numero : '-'}</td>
+                    <td>${proveedor ? proveedor.nombre : '-'}</td>
+                    <td>$${s.monto.toFixed(2)}</td>
+                    <td>${s.descripcion || ''}</td>
+                    <td>
+                        <button class="btn-outline action-btn" onclick='eliminarSalida(${JSON.stringify(s.id)})'>
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            if (cont) cont.innerHTML = html;
+            if (contHistorial) contHistorial.innerHTML = html;
+        }
+
+        async function exportarSalidasExcel() {
+            const salidas = await obtenerTodos('salidas');
+            const lotes = await obtenerTodos('lotes');
+            const proveedores = await obtenerTodos('proveedores');
+
+            if (salidas.length === 0) {
+                alert('No hay salidas para exportar');
+                return;
+            }
+
+            const data = salidas.map(s => {
+                const lote = lotes.find(l => l.id == s.loteId);
+                const proveedor = proveedores.find(p => p.id == s.proveedorId);
+                return {
+                    Fecha: s.fecha,
+                    Tipo: s.tipo,
+                    Lote: lote ? lote.numero : '',
+                    Proveedor: proveedor ? proveedor.nombre : '',
+                    Monto: s.monto,
+                    Descripcion: s.descripcion || ''
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Salidas');
+            XLSX.writeFile(wb, `salidas_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+        
+        // ========================================
+        // CARRITO Y VENTAS
+        // ========================================
+        
+        async function agregarAlCarrito() {
+            const clienteId = parseInt(document.getElementById('ventaCliente').value);
+            const tipoProducto = document.getElementById('ventaTipoProducto').value;
+            const loteId = parseInt(document.getElementById('ventaLote').value) || null;
+            const cantidad = parseInt(document.getElementById('ventaCantidad').value);
+            const peso = parseFloat(document.getElementById('ventaPeso').value);
+            const precio = parseFloat(document.getElementById('ventaPrecio').value);
+            
+            if (!clienteId || !peso || !precio) {
+                alert('Por favor complete cliente, peso y precio');
+                return;
+            }
+            
+            // Validar que si se ingresa cantidad de pollos, haya un lote seleccionado
+            if (cantidad > 0 && !loteId) {
+                alert('Debe seleccionar un lote si va a descontar pollos del inventario');
+                return;
+            }
+            
+            // Validar disponibilidad si se van a descontar pollos
+            if (cantidad > 0 && loteId) {
+                const lote = await obtenerRegistro('lotes', loteId);
+                if (!lote || lote.disponibles < cantidad) {
+                    alert('No hay suficientes pollos disponibles en este lote');
+                    return;
+                }
+            }
+            
+            const cliente = await obtenerRegistro('clientes', clienteId);
+            const subtotal = peso * precio;
+            
+            // Obtener nombre del lote si existe
+            let loteNumero = 'Sin lote';
+            if (loteId) {
+                const lote = await obtenerRegistro('lotes', loteId);
+                loteNumero = lote ? lote.numero : 'Sin lote';
+            }
+            
+            // Mapear tipo de producto a nombre legible
+            const nombresTipoProducto = {
+                'pollo_entero': 'Pollo Entero',
+                'pechuga': 'Pechuga',
+                'entrepierna': 'Entrepierna',
+                'pata': 'Patas',
+                'menudos': 'Menudos',
+                'otros': 'Otros'
+            };
+            
+            const item = {
+                id: Date.now(),
+                clienteId,
+                clienteNombre: cliente.nombre,
+                tipoProducto: nombresTipoProducto[tipoProducto],
+                loteId,
+                loteNumero,
+                cantidad,
+                peso,
+                precio,
+                subtotal
+            };
+            
+            carrito.push(item);
+            renderizarCarrito();
+            
+            // Limpiar campos
+            document.getElementById('ventaCantidad').value = '0';
+            document.getElementById('ventaPeso').value = '';
+        }
+        
+        function renderizarCarrito() {
+            const container = document.getElementById('carritoItems');
+            
+            if (carrito.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Carrito vacío</p>
+                    </div>
+                `;
+                document.getElementById('carritoTotal').textContent = '$0.00';
+                return;
+            }
+            
+            let html = '';
+            let total = 0;
+            
+            carrito.forEach(item => {
+                const infoPollos = item.cantidad > 0 
+                    ? `${item.cantidad} pollos × ` 
+                    : '';
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <strong>${item.tipoProducto}</strong>
+                            <small>${infoPollos}${item.peso} lbs × $${item.precio}/lb</small>
+                            <small style="display: block; margin-top: 5px;">
+                                Cliente: ${item.clienteNombre} | Lote: ${item.loteNumero}
+                            </small>
+                        </div>
+                        <div class="cart-item-price">$${item.subtotal.toFixed(2)}</div>
+                    </div>
+                `;
+                total += item.subtotal;
+            });
+            
+            container.innerHTML = html;
+            document.getElementById('carritoTotal').textContent = `$${total.toFixed(2)}`;
+        }
+        
+        function limpiarCarrito() {
+            if (carrito.length > 0 && confirm('¿Limpiar el carrito?')) {
+                carrito = [];
+                renderizarCarrito();
+            }
+        }
+        
+        async function finalizarVenta() {
+            if (carrito.length === 0) {
+                alert('El carrito está vacío');
+                return;
+            }
+            
+            try {
+                // Crear venta
+                const venta = {
+                    id: Date.now(),
+                    fecha: new Date().toISOString(),
+                    items: [...carrito],
+                    total: carrito.reduce((sum, item) => sum + item.subtotal, 0)
+                };
+                
+                // Guardar en base de datos
+                await agregarRegistro('ventas', venta);
+                
+                // Actualizar disponibilidad de lotes SOLO si se usaron pollos (cantidad > 0)
+                for (const item of carrito) {
+                    if (item.cantidad > 0 && item.loteId) {
+                        const lote = await obtenerRegistro('lotes', item.loteId);
+                        if (lote) {
+                            lote.disponibles -= item.cantidad;
+                            if (lote.disponibles <= 0) {
+                                lote.activo = false;
+                            }
+                            await actualizarRegistro('lotes', lote);
+                        }
+                    }
+                }
+                
+                // Mostrar recibo
+                mostrarRecibo(venta);
+                
+                // Limpiar carrito
+                carrito = [];
+                
+                mostrarAlerta('Venta registrada en la base de datos', 'success');
+                await actualizarUI();
+            } catch (error) {
+                console.error('Error al finalizar venta:', error);
+                mostrarAlerta('Error al procesar la venta', 'error');
+            }
+        }
+        
+        function mostrarRecibo(venta) {
+            const receipt = document.getElementById('receipt');
+            const detalles = document.getElementById('reciboDetalles');
+            
+            document.getElementById('reciboFecha').textContent = new Date(venta.fecha).toLocaleString();
+            
+            let html = '';
+            venta.items.forEach(item => {
+                const infoPollos = item.cantidad > 0 ? `${item.cantidad} pollos × ` : '';
+                
+                html += `
+                    <div class="receipt-item">
+                        <div>
+                            <strong>${item.tipoProducto}</strong><br>
+                            <small>${item.clienteNombre}</small><br>
+                            <small>${infoPollos}${item.peso} lbs × $${item.precio}/lb</small><br>
+                            <small>Lote: ${item.loteNumero}</small>
+                        </div>
+                        <div><strong>$${item.subtotal.toFixed(2)}</strong></div>
+                    </div>
+                `;
+            });
+            
+            detalles.innerHTML = html;
+            document.getElementById('reciboTotal').textContent = `$${venta.total.toFixed(2)}`;
+            
+            receipt.style.display = 'block';
+            
+            if (confirm('¿Desea imprimir el recibo?')) {
+                window.print();
+            }
+            
+            setTimeout(() => {
+                receipt.style.display = 'none';
+            }, 500);
+        }
+        
+        // ========================================
+        // REPORTES
+        // ========================================
+        
+        async function renderizarReportes() {
+            const ventas = await obtenerTodos('ventas');
+            const lotes = await obtenerTodos('lotes');
+            const clientes = await obtenerTodos('clientes');
+            const proveedores = await obtenerTodos('proveedores');
+            const salidas = await obtenerTodos('salidas');
+            
+            // Estadísticas
+            const totalVentas = ventas.reduce((sum, v) => sum + v.total, 0);
+            const totalPollos = ventas.reduce((sum, v) => {
+                return sum + v.items.reduce((s, i) => s + i.cantidad, 0);
+            }, 0);
+            const lotesActivos = lotes.filter(l => l.activo).length;
+            const totalSalidas = salidas.reduce((sum, s) => sum + s.monto, 0);
+            
+            document.getElementById('statVentas').textContent = `$${totalVentas.toFixed(2)}`;
+            document.getElementById('statPollos').textContent = totalPollos;
+            document.getElementById('statLotes').textContent = lotesActivos;
+            document.getElementById('statClientes').textContent = clientes.length;
+            document.getElementById('statProveedores').textContent = proveedores.length;
+            document.getElementById('statSalidas').textContent = `$${totalSalidas.toFixed(2)}`;
+            
+            // Historial de ventas
+            const containerVentas = document.getElementById('historialVentas');
+            
+            if (ventas.length === 0) {
+                containerVentas.innerHTML = `
+                    <div class="empty-state">
+                        <p>No hay ventas registradas en la base de datos</p>
+                    </div>
+                `;
+            } else {
+                let html = '<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Lote</th><th>Pollos</th><th>Peso</th><th>Total</th></tr></thead><tbody>';
+                
+                ventas.slice().reverse().forEach(venta => {
+                    venta.items.forEach(item => {
+                        // Mostrar tipo de producto, si no existe usar loteNumero (retrocompatibilidad)
+                        const producto = item.tipoProducto || 'Pollo Entero';
+                        const pollosInfo = item.cantidad > 0 ? `${item.cantidad} pollos` : '-';
+                        
+                        html += `
+                            <tr>
+                                <td>${new Date(venta.fecha).toLocaleString()}</td>
+                                <td>${item.clienteNombre}</td>
+                                <td>${producto}</td>
+                                <td>${item.loteNumero}</td>
+                                <td>${pollosInfo}</td>
+                                <td>${item.peso} lbs</td>
+                                <td><strong>$${item.subtotal.toFixed(2)}</strong></td>
+                            </tr>
+                        `;
+                    });
+                });
+                
+                html += '</tbody></table>';
+                containerVentas.innerHTML = html;
+            }
+            
+            // Renderizar salidas en reportes
+            await renderizarSalidas();
+        }
+        
+        async function exportarVentasExcel() {
+            const ventas = await obtenerTodos('ventas');
+            
+            if (ventas.length === 0) {
+                alert('No hay ventas para exportar');
+                return;
+            }
+            
+            const data = [];
+            ventas.forEach(venta => {
+                venta.items.forEach(item => {
+                    const producto = item.tipoProducto || 'Pollo Entero';
+                    const pollos = item.cantidad > 0 ? item.cantidad : 0;
+                    
+                    data.push({
+                        Fecha: new Date(venta.fecha).toLocaleString(),
+                        Cliente: item.clienteNombre,
+                        Producto: producto,
+                        Lote: item.loteNumero,
+                        'Pollos Utilizados': pollos,
+                        'Peso (lbs)': item.peso,
+                        'Precio/lb': item.precio,
+                        Total: item.subtotal.toFixed(2)
+                    });
+                });
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Ventas");
+            XLSX.writeFile(wb, `ventas_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+        
+        // ========================================
+        // GESTIÓN DE BASE DE DATOS
+        // ========================================
+        
+        async function exportarBaseDatos() {
+            try {
+                const lotes = await obtenerTodos('lotes');
+                const clientes = await obtenerTodos('clientes');
+                const proveedores = await obtenerTodos('proveedores');
+                const ventas = await obtenerTodos('ventas');
+                const salidas = await obtenerTodos('salidas');
+                
+                const backup = {
+                    version: 3,
+                    fecha: new Date().toISOString(),
+                    datos: {
+                        lotes,
+                        clientes,
+                        proveedores,
+                        ventas,
+                        salidas
+                    }
+                };
+                
+                const dataStr = JSON.stringify(backup, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `backup_granja_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                mostrarAlerta('Backup descargado exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al exportar:', error);
+                mostrarAlerta('Error al crear el backup', 'error');
+            }
+        }
+        
+        async function importarBaseDatos(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('¿Está seguro? Esto reemplazará todos los datos actuales con los del backup.')) {
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+                    
+                    // Limpiar stores
+                    await limpiarStore('lotes');
+                    await limpiarStore('clientes');
+                    await limpiarStore('proveedores');
+                    await limpiarStore('ventas');
+                    await limpiarStore('salidas');
+                    
+                    // Restaurar datos
+                    for (const lote of backup.datos.lotes) {
+                        await agregarRegistro('lotes', lote);
+                    }
+                    for (const cliente of backup.datos.clientes) {
+                        await agregarRegistro('clientes', cliente);
+                    }
+                    if (backup.datos.proveedores) {
+                        for (const proveedor of backup.datos.proveedores) {
+                            await agregarRegistro('proveedores', proveedor);
+                        }
+                    }
+                    for (const venta of backup.datos.ventas) {
+                        await agregarRegistro('ventas', venta);
+                    }
+                    if (backup.datos.salidas) {
+                        for (const salida of backup.datos.salidas) {
+                            await agregarRegistro('salidas', salida);
+                        }
+                    }
+                    
+                    mostrarAlerta('Base de datos restaurada exitosamente', 'success');
+                    await actualizarUI();
+                } catch (error) {
+                    console.error('Error al importar:', error);
+                    alert('Error al restaurar el backup. Verifique que el archivo sea válido.');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        async function limpiarBaseDatos() {
+            if (!confirm('⚠️ ¿ESTÁ SEGURO? Esta acción eliminará PERMANENTEMENTE todos los lotes, clientes, proveedores, ventas y salidas.')) {
+                return;
+            }
+            
+            if (!confirm('Esta es su última oportunidad. ¿Desea continuar?')) {
+                return;
+            }
+            
+            try {
+                await limpiarStore('lotes');
+                await limpiarStore('clientes');
+                await limpiarStore('proveedores');
+                await limpiarStore('ventas');
+                await limpiarStore('salidas');
+                
+                carrito = [];
+                
+                mostrarAlerta('Base de datos limpiada completamente', 'success');
+                await actualizarUI();
+            } catch (error) {
+                console.error('Error al limpiar:', error);
+                mostrarAlerta('Error al limpiar la base de datos', 'error');
+            }
+        }
+        
+        async function actualizarEstadisticasDB() {
+            const lotes = await obtenerTodos('lotes');
+            const clientes = await obtenerTodos('clientes');
+            const proveedores = await obtenerTodos('proveedores');
+            const ventas = await obtenerTodos('ventas');
+            const salidas = await obtenerTodos('salidas');
+            
+            document.getElementById('dbLotesCount').textContent = lotes.length;
+            document.getElementById('dbClientesCount').textContent = clientes.length;
+            document.getElementById('dbProveedoresCount').textContent = proveedores.length;
+            document.getElementById('dbVentasCount').textContent = ventas.length;
+            document.getElementById('dbSalidasCount').textContent = salidas.length;
+            
+            mostrarAlerta('Estadísticas actualizadas', 'success');
+        }
+        
+        // ========================================
+        // UTILIDADES
+        // ========================================
+        
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'database') {
+                actualizarEstadisticasDB();
+            }
+        }
+        
+        function mostrarAlerta(mensaje, tipo) {
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo}`;
+            alerta.textContent = mensaje;
+            
+            document.querySelector('.container').insertBefore(
+                alerta,
+                document.querySelector('.tabs')
+            );
+            
+            setTimeout(() => alerta.remove(), 3000);
+        }
+        
+        async function actualizarUI() {
+            await renderizarLotes();
+            await renderizarClientes();
+            await renderizarProveedores();
+            renderizarCarrito();
+            await renderizarReportes();
+            await renderizarSalidas();
+        }
+        
+        // ========================================
+        // INICIALIZACIÓN
+        // ========================================
+        
+        document.getElementById('loteFecha').valueAsDate = new Date();
+        document.getElementById('salidaFecha').valueAsDate = new Date();
+        document.getElementById('ventaCantidad').value = '0';
+        
+        initDB().then(async () => {
+            console.log('Sistema iniciado correctamente');
+            await actualizarUI();
+            await actualizarEstadisticasDB();
+        }).catch(error => {
+            console.error('Error al inicializar:', error);
+            alert('Error al iniciar la base de datos. Recargue la página.');
+        });
+
+        
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service Worker registrado'))
+    .catch(err => console.error('SW error', err));
+}
+
+    </script>
+</body>
+</html>

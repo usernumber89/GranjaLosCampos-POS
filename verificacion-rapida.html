@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación Rápida Firebase</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #e8f5e9; border-color: #4caf50; }
+        .error { background: #ffebee; border-color: #f44336; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificación Rápida de Firebase</h1>
+
+    <button onclick="test1()">Paso 1: Verificar SDK</button>
+    <button onclick="test2()">Paso 2: Inicializar Firebase</button>
+    <button onclick="test3()">Paso 3: Probar Firestore</button>
+    <button onclick="test4()">Paso 4: Probar Escritura</button>
+
+    <div id="results"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTV-miHc-sA9-n1MJjQEfwQSfyNvl9vG0",
+            authDomain: "granja-los-campos-pos.firebaseapp.com",
+            projectId: "granja-los-campos-pos",
+            storageBucket: "granja-los-campos-pos.firebasestorage.app",
+            messagingSenderId: "553361614502",
+            appId: "1:553361614502:web:8192471c4d88bfe3e9b667",
+            measurementId: "G-7SL48RPRSF"
+        };
+
+        let db;
+
+        function addResult(message, success = true) {
+            const div = document.createElement('div');
+            div.className = 'test ' + (success ? 'success' : 'error');
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function test1() {
+            try {
+                if (typeof firebase !== 'undefined') {
+                    addResult('✅ SDK de Firebase cargado correctamente');
+                } else {
+                    addResult('❌ SDK de Firebase no encontrado', false);
+                }
+            } catch (e) {
+                addResult('❌ Error al verificar SDK: ' + e.message, false);
+            }
+        }
+
+        function test2() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                addResult('✅ Firebase inicializado correctamente');
+            } catch (e) {
+                addResult('❌ Error al inicializar Firebase: ' + e.message, false);
+            }
+        }
+
+        function test3() {
+            try {
+                db = firebase.firestore();
+                addResult('✅ Firestore inicializado correctamente');
+            } catch (e) {
+                addResult('❌ Error al inicializar Firestore: ' + e.message, false);
+            }
+        }
+
+        async function test4() {
+            try {
+                const testData = { test: true, timestamp: new Date().toISOString() };
+                const docRef = await db.collection('test').add(testData);
+                addResult('✅ Escritura exitosa - ID: ' + docRef.id);
+
+                // Limpiar
+                await docRef.delete();
+                addResult('✅ Limpieza exitosa');
+            } catch (e) {
+                addResult('❌ Error al escribir: ' + e.message, false);
+            }
+        }
+    </script>
+</body>
+</html>

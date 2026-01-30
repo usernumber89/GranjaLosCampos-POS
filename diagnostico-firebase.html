@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Firebase - POS Granja</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #f44336;
+        }
+        .warning {
+            background: #fff3e0;
+            color: #ef6c00;
+            border: 1px solid #ff9800;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #2196f3;
+        }
+        button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .diagnostic-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .diagnostic-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .result {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .config-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico Firebase</h1>
+
+        <div id="status" class="status info">Haz clic en "Iniciar Diagnóstico" para comenzar</div>
+
+        <button onclick="runFullDiagnostic()">🔬 Iniciar Diagnóstico Completo</button>
+        <button onclick="testBasicConnection()">🔗 Probar Conexión Básica</button>
+        <button onclick="checkConfig()">⚙️ Verificar Configuración</button>
+
+        <div class="diagnostic-section">
+            <h3>📋 Configuración Actual de Firebase</h3>
+            <div id="config-display" class="config-display">
+const firebaseConfig = {
+  apiKey: "AIzaSyCTV-miHc-sA9-n1MJjQEfwQSfyNvl9vG0",
+  authDomain: "granja-los-campos-pos.firebaseapp.com",
+  projectId: "granja-los-campos-pos",
+  storageBucket: "granja-los-campos-pos.firebasestorage.app",
+  messagingSenderId: "553361614502",
+  appId: "1:553361614502:web:8192471c4d88bfe3e9b667",
+  measurementId: "G-7SL48RPRSF"
+};
+            </div>
+        </div>
+
+        <div class="diagnostic-section">
+            <h3>🔍 Resultados del Diagnóstico</h3>
+            <div id="results" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="diagnostic-section">
+            <h3>💡 Soluciones Comunes</h3>
+            <div class="status info">
+                <strong>Si el diagnóstico muestra errores:</strong><br>
+                1. Verifica que las credenciales sean correctas<br>
+                2. Asegúrate de que el proyecto Firebase esté activo<br>
+                3. Revisa que Firestore esté habilitado<br>
+                4. Verifica tu conexión a internet<br>
+                5. Intenta en un navegador diferente
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ✅ TU CONFIG DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTV-miHc-sA9-n1MJjQEfwQSfyNvl9vG0",
+            authDomain: "granja-los-campos-pos.firebaseapp.com",
+            projectId: "granja-los-campos-pos",
+            storageBucket: "granja-los-campos-pos.firebasestorage.app",
+            messagingSenderId: "553361614502",
+            appId: "1:553361614502:web:8192471c4d88bfe3e9b667",
+            measurementId: "G-7SL48RPRSF"
+        };
+
+        let db;
+        let results = [];
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function addResult(test, result, details = '') {
+            results.push({
+                test: test,
+                result: result,
+                details: details,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            updateResultsDisplay();
+        }
+
+        function updateResultsDisplay() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+
+            let html = '';
+            results.forEach(r => {
+                const icon = r.result === 'PASS' ? '✅' : r.result === 'FAIL' ? '❌' : '⚠️';
+                html += `${icon} ${r.test}: ${r.result}\n`;
+                if (r.details) {
+                    html += `   ${r.details}\n`;
+                }
+                html += `   [${r.timestamp}]\n\n`;
+            });
+
+            resultsDiv.textContent = html;
+        }
+
+        async function checkConfig() {
+            updateStatus('Verificando configuración...', 'info');
+
+            try {
+                // Verificar que la config tenga todos los campos requeridos
+                const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+                const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
+
+                if (missingFields.length > 0) {
+                    addResult('Configuración', 'FAIL', `Campos faltantes: ${missingFields.join(', ')}`);
+                    updateStatus('❌ Configuración incompleta', 'error');
+                } else {
+                    addResult('Configuración', 'PASS', 'Todos los campos requeridos están presentes');
+                    updateStatus('✅ Configuración correcta', 'success');
+                }
+
+                // Verificar formato de campos
+                if (!firebaseConfig.apiKey.startsWith('AIzaSy')) {
+                    addResult('API Key', 'WARNING', 'El API Key no tiene el formato esperado');
+                } else {
+                    addResult('API Key', 'PASS', 'Formato correcto');
+                }
+
+                if (!firebaseConfig.projectId.includes('-')) {
+                    addResult('Project ID', 'WARNING', 'El Project ID parece inusual');
+                } else {
+                    addResult('Project ID', 'PASS', 'Formato correcto');
+                }
+
+            } catch (error) {
+                addResult('Verificación de Config', 'FAIL', error.message);
+                updateStatus('❌ Error en verificación', 'error');
+            }
+        }
+
+        async function testBasicConnection() {
+            updateStatus('Probando conexión básica...', 'info');
+
+            try {
+                // Verificar que Firebase se puede cargar
+                if (typeof firebase === 'undefined') {
+                    addResult('Firebase SDK', 'FAIL', 'Firebase SDK no está cargado');
+                    updateStatus('❌ Firebase SDK no disponible', 'error');
+                    return;
+                }
+                addResult('Firebase SDK', 'PASS', 'SDK cargado correctamente');
+
+                // Intentar inicializar
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                addResult('Inicialización', 'PASS', 'Firebase inicializado correctamente');
+
+                // Verificar Firestore
+                db = firebase.firestore();
+                addResult('Firestore', 'PASS', 'Firestore inicializado correctamente');
+
+                updateStatus('✅ Conexión básica exitosa', 'success');
+
+            } catch (error) {
+                addResult('Conexión Básica', 'FAIL', `Error: ${error.message}`);
+                updateStatus('❌ Error de conexión básica', 'error');
+            }
+        }
+
+        async function testFirestoreAccess() {
+            updateStatus('Probando acceso a Firestore...', 'info');
+
+            try {
+                if (!db) {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    db = firebase.firestore();
+                }
+
+                // Intentar una operación de lectura simple
+                const testQuery = await db.collection('test-connection').limit(1).get();
+
+                if (testQuery.empty) {
+                    addResult('Acceso Firestore', 'PASS', 'Conexión exitosa (colección vacía)');
+                } else {
+                    addResult('Acceso Firestore', 'PASS', 'Conexión exitosa (datos encontrados)');
+                }
+
+                updateStatus('✅ Acceso a Firestore exitoso', 'success');
+
+            } catch (error) {
+                addResult('Acceso Firestore', 'FAIL', `Error: ${error.message}`);
+                updateStatus('❌ Error de acceso a Firestore', 'error');
+            }
+        }
+
+        async function testWriteOperation() {
+            updateStatus('Probando operación de escritura...', 'info');
+
+            try {
+                if (!db) {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    db = firebase.firestore();
+                }
+
+                const testData = {
+                    test: true,
+                    timestamp: new Date().toISOString(),
+                    source: 'diagnostic-tool'
+                };
+
+                const docRef = await db.collection('diagnostic-test').add(testData);
+                addResult('Escritura', 'PASS', `Documento creado con ID: ${docRef.id}`);
+
+                // Limpiar el documento de prueba
+                await docRef.delete();
+                addResult('Limpieza', 'PASS', 'Documento de prueba eliminado');
+
+                updateStatus('✅ Operación de escritura exitosa', 'success');
+
+            } catch (error) {
+                addResult('Escritura', 'FAIL', `Error: ${error.message}`);
+                updateStatus('❌ Error de escritura', 'error');
+            }
+        }
+
+        async function testNetwork() {
+            updateStatus('Probando conectividad de red...', 'info');
+
+            try {
+                // Probar conectividad básica
+                const response = await fetch('https://www.google.com/favicon.ico', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+
+                addResult('Conectividad', 'PASS', 'Conexión a internet disponible');
+
+                // Probar acceso a Firebase
+                const firebaseResponse = await fetch('https://firestore.googleapis.com/v1/projects/granja-los-campos-pos/databases/(default)/documents/test', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer test'
+                    }
+                }).catch(() => ({ ok: false }));
+
+                if (firebaseResponse.ok || firebaseResponse.status === 401) {
+                    addResult('Acceso Firebase API', 'PASS', 'API de Firebase es accesible');
+                } else {
+                    addResult('Acceso Firebase API', 'WARNING', 'No se pudo verificar acceso a Firebase API');
+                }
+
+            } catch (error) {
+                addResult('Red', 'FAIL', `Error de conectividad: ${error.message}`);
+                updateStatus('❌ Problemas de red', 'error');
+            }
+        }
+
+        async function runFullDiagnostic() {
+            updateStatus('Ejecutando diagnóstico completo...', 'info');
+            results = [];
+
+            await checkConfig();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testBasicConnection();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testNetwork();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testFirestoreAccess();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testWriteOperation();
+
+            // Resumen final
+            const passed = results.filter(r => r.result === 'PASS').length;
+            const failed = results.filter(r => r.result === 'FAIL').length;
+            const warnings = results.filter(r => r.result === 'WARNING').length;
+
+            if (failed === 0 && warnings === 0) {
+                updateStatus(`✅ Diagnóstico completo: ${passed} pruebas pasaron`, 'success');
+            } else if (failed === 0) {
+                updateStatus(`⚠️ Diagnóstico completo: ${passed} pasaron, ${warnings} advertencias`, 'warning');
+            } else {
+                updateStatus(`❌ Diagnóstico completo: ${failed} fallaron, ${passed} pasaron`, 'error');
+            }
+        }
+
+        // Verificar configuración al cargar
+        window.addEventListener('load', () => {
+            checkConfig();
+        });
+    </script>
+</body>
+</html>
